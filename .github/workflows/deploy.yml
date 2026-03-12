@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Deploy on VPS
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             cd /opt/elegance-florale-bot
             git pull origin main
             source venv/bin/activate
