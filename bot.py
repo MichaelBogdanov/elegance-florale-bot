@@ -50,7 +50,3 @@ if __name__ == "__main__":
     # remove_webhook нужен, если бот до этого работал на вебхуках, чтобы не было конфликта
     bot.delete_webhook(drop_pending_updates=True) 
     bot.polling(non_stop=True)
-
-
-
-
