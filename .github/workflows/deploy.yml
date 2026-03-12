@@ -2,20 +2,30 @@ name: Deploy Telegram Bot
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy on VPS
-        run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: django
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e  # аварийный выход при любой ошибке
             cd /opt/elegance-florale-bot
-            git pull origin main
-            source venv/bin/activate
+
+            # Обновляем код
+            git pull --rebase
+
+            # Активируем виртуальное окружение и устанавливаем зависимости
+            . venv/bin/activate
+            pip install --upgrade pip
             pip install -r requirements.txt
+
+            # Перезапускаем бота
             sudo systemctl restart mybot
-          EOF
