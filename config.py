@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 ADMINS = [5334111672, 5294874603, 6058086032]
-
+user_black_list = []
 
 REVIEW_CHANNEL_ID = 5334111672
 

@@ -219,6 +219,35 @@ def callback_router(callback):
         show_product(user_id, chat_id, callback.message.message_id, product, len(products), idx)
 
     elif data.startswith("zakaz_"):
+
+        bot.answer_callback_query(callback.id)
+        p_id = int(data.split("_")[1])
+        product = get_product_by_id(p_id)
+        if not product: return
+        
+        confirm_text = (
+            f"❓ <b>Подтверждение заявки</b>\n\n"
+            f"Вы собираетесь отправить заявку на товар:\n"
+            f"💐 <b>{product['name']}</b>\n\n"
+            f"Пожалуйста, подтвердите ваше действие."
+        )
+
+        
+        markup = types.InlineKeyboardMarkup()
+        yes_btn = types.InlineKeyboardButton("✅ Да, подтверждаю", callback_data=f"confirm_order_{p_id}")
+        no_btn = types.InlineKeyboardButton("❌ Вернуться назад", callback_data="catalog")
+        markup.row(yes_btn, no_btn)
+        
+        bot.edit_message_text(
+            chat_id=callback.message.chat.id,
+            message_id=callback.message.message_id,
+            text=confirm_text,
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
+        
+    elif data.startswith("confirm_order_"):
+        
         bot.answer_callback_query(callback.id)
         p_id = int(data.split("_")[1])
         product = get_product_by_id(p_id)
@@ -241,7 +270,7 @@ def callback_router(callback):
         contact_btn = types.InlineKeyboardButton("💬 Написать клиенту", url=f"tg://user?id={user.id}")
         adminbtn = types.InlineKeyboardButton("✅ Заказ выполнен", callback_data=f"confirm_{user.id}")
         
-        bot.send_message(chat_id, f"✅ Заявка на «{product['name']}» отправлена!\n\nПросим обратить внимание, если у вас закрыт профиль или стоят платные сообщения, то мы не сможем с вами связаться.")
+        bot.send_message(chat_id, f"✅ Заявка на «{product['name']}» отправлена!\n\nВ ближайшее время специалист свяжется с вами для уточнения деталей. Благодарим за обращение! ✨")
         
         try:
             markup.add(contact_btn)
@@ -249,10 +278,7 @@ def callback_router(callback):
             bot.send_message(-1003868129054, admin_text, parse_mode="HTML", reply_markup=markup)
         except Exception as e:
             if "BUTTON_USER_PRIVACY_RESTRICTED" in str(e):
-                simple_markup = types.InlineKeyboardMarkup()
-                simple_markup.add(adminbtn)
-                secure_text = admin_text + "\n\n⚠️ <i>Кнопка связи недоступна (приватность).</i>"
-                bot.send_message(-1003868129054, secure_text, parse_mode="HTML", reply_markup=simple_markup)
+                bot.send_message(chat_id, f"Ой, кажется, ваш профиль скрыт настройками приватности. Измените их и попробуйте ещё раз! ✨")
 
     elif data.startswith("confirm_"):
         c_id = int(data.split("_")[1])

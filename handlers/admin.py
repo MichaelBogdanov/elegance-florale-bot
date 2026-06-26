@@ -1,11 +1,17 @@
 from loader import bot
 from telebot import types
-from config import ADMINS
+from config import ADMINS, user_black_list
 from utils import add_product, delete_product, get_connection, update_product_field
 
 MAX_PRODUCT_PHOTOS = 10
 from states import admin_state, new_product
 
+@bot.message_handler(commands=['blacklist'])
+def blacklist(message):
+    if message.from_user.id not in ADMINS:
+        return
+    bot.send_message(message.chat.id, "Введите ID пользователя, которого хотите добавить в черный список:")
+    admin_state[message.from_user.id] = {"step": "blasklist"}
 @bot.message_handler(commands=['edit'])
 def edit(message):
     if message.from_user.id not in ADMINS:
@@ -206,6 +212,13 @@ def admin_text_steps(message):
         update_product_field(product_id, field, value)
     
         bot.send_message(message.chat.id, "Товар обновлён ✅")
+        admin_state.pop(user_id, None)
+        return
+    
+    if step == "blacklist":
+        black_list_id = message.text
+        user_black_list.append(black_list_id)
+        bot.send_message(message.chat.id, "Пользователь добавлен в черный список ✅")
         admin_state.pop(user_id, None)
         return
 

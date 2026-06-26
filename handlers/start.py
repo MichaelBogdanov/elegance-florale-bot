@@ -1,5 +1,15 @@
 from loader import bot
 from telebot import types
+from config import user_black_list
+
+@bot.message_handler(func=lambda message: message.from_user.id in user_black_list)
+def banned_user_text(message):
+    return
+
+@bot.callback_query_handler(func=lambda call: call.from_user.id in user_black_list)
+def banned_user_callback(call):
+    return
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
