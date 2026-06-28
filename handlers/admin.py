@@ -11,7 +11,7 @@ def blacklist(message):
     if message.from_user.id not in ADMINS:
         return
     bot.send_message(message.chat.id, "Введите ID пользователя, которого хотите добавить в черный список:")
-    admin_state[message.from_user.id] = {"step": "blasklist"}
+    admin_state[message.from_user.id] = {"step": "blacklist"}
 @bot.message_handler(commands=['edit'])
 def edit(message):
     if message.from_user.id not in ADMINS:
@@ -217,7 +217,7 @@ def admin_text_steps(message):
     
     if step == "blacklist":
         black_list_id = message.text
-        user_black_list.append(black_list_id)
+        user_black_list.append(int(black_list_id))
         bot.send_message(message.chat.id, "Пользователь добавлен в черный список ✅")
         admin_state.pop(user_id, None)
         return
