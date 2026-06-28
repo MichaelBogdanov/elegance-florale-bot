@@ -219,37 +219,40 @@ def callback_router(callback):
         show_product(user_id, chat_id, callback.message.message_id, product, len(products), idx)
 
     elif data.startswith("zakaz_"):
-
         bot.answer_callback_query(callback.id)
         p_id = int(data.split("_")[1])
         product = get_product_by_id(p_id)
-        if not product: return
+        if not product: 
+            return
+        
+        # Защита: если в базе данных у товара нет имени, пишем заглушку
+        product_name = product.get('name') or f"Товар №{p_id} (Имя не указано в БД)"
         
         confirm_text = (
             f"❓ <b>Подтверждение заявки</b>\n\n"
             f"Вы собираетесь отправить заявку на товар:\n"
-            f"💐 <b>{product['name']}</b>\n\n"
+            f"💐 <b>{product_name}</b>\n\n"
             f"Пожалуйста, подтвердите ваше действие."
         )
 
-        
         markup = types.InlineKeyboardMarkup()
         yes_btn = types.InlineKeyboardButton("✅ Да, подтверждаю", callback_data=f"confirm_order_{p_id}")
         no_btn = types.InlineKeyboardButton("❌ Вернуться назад", callback_data="catalog")
-        markup.row(yes_btn, no_btn)
+        markup.row(no_btn, yes_btn)
         
-        bot.edit_message_text(
+        bot.edit_message_caption(
             chat_id=callback.message.chat.id,
             message_id=callback.message.message_id,
-            text=confirm_text,
+            caption=confirm_text,
             reply_markup=markup,
             parse_mode="HTML"
         )
+
         
     elif data.startswith("confirm_order_"):
         
         bot.answer_callback_query(callback.id)
-        p_id = int(data.split("_")[1])
+        p_id = int(data.split("_")[-1])
         product = get_product_by_id(p_id)
         if not product: return
         
@@ -269,9 +272,6 @@ def callback_router(callback):
         markup = types.InlineKeyboardMarkup()
         contact_btn = types.InlineKeyboardButton("💬 Написать клиенту", url=f"tg://user?id={user.id}")
         adminbtn = types.InlineKeyboardButton("✅ Заказ выполнен", callback_data=f"confirm_{user.id}")
-        
-        bot.send_message(chat_id, f"✅ Заявка на «{product['name']}» отправлена!\n\nВ ближайшее время специалист свяжется с вами для уточнения деталей. Благодарим за обращение! ✨")
-        
         try:
             markup.add(contact_btn)
             markup.add(adminbtn)
@@ -279,6 +279,10 @@ def callback_router(callback):
         except Exception as e:
             if "BUTTON_USER_PRIVACY_RESTRICTED" in str(e):
                 bot.send_message(chat_id, f"Ой, кажется, ваш профиль скрыт настройками приватности. Измените их и попробуйте ещё раз! ✨")
+                return
+            
+        bot.send_message(chat_id, f"✅ Заявка на «{product['name']}» отправлена!\n\nВ ближайшее время специалист свяжется с вами для уточнения деталей. Благодарим за обращение! ✨")
+        
 
     elif data.startswith("confirm_"):
         c_id = int(data.split("_")[1])
@@ -357,6 +361,3 @@ def show_product(userrr, chat_id, message_id, product, total_count, photo_index=
         try: bot.delete_message(chat_id, message_id)
         except: pass
         bot.send_photo(chat_id, current_photo, caption=caption, parse_mode="HTML", reply_markup=markup)
-
-
-
